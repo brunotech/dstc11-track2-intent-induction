@@ -48,7 +48,7 @@ def read_task_2_intent_schema(input_path: Path) -> Dict[str, List[str]]:
                 raise ValueError(f'"utterances" field for intent_id "{intent_id}" are empty')
             for i, utterance in enumerate(utterances):
                 if not isinstance(utterance, str):
-                    raise ValueError(f'"utterances" should be a list of Strings')
+                    raise ValueError('"utterances" should be a list of Strings')
                 if not utterance.strip():
                     raise ValueError(f'Utterance {i} for intent_id "{intent_id}" is blank')
             utterances_by_label[intent_id] = utterances
@@ -86,11 +86,13 @@ def read_task_1_predictions(input_path: Path, dialogues_path: Path = None) -> Di
                 if turn_id in clustered_turn_uids:
                     print(f'Warning: Turn {turn_id} assigned multiple cluster labels')
             clustered_turn_uids.update(turn_ids)
-        cluster_uids_not_in_dialogues = clustered_turn_uids.difference(dialogues_turn_ids)
-        if cluster_uids_not_in_dialogues:
+        if cluster_uids_not_in_dialogues := clustered_turn_uids.difference(
+            dialogues_turn_ids
+        ):
             raise ValueError(f'Clustered turns not found in inputs: {cluster_uids_not_in_dialogues}')
-        dialogue_uids_not_clustered = dialogues_turn_ids.difference(clustered_turn_uids)
-        if dialogue_uids_not_clustered:
+        if dialogue_uids_not_clustered := dialogues_turn_ids.difference(
+            clustered_turn_uids
+        ):
             raise ValueError(f'Input turns not assigned cluster labels: {dialogue_uids_not_clustered}')
 
     return turn_ids_by_cluster_label
@@ -104,8 +106,9 @@ def validate(output_file: str, task: str, dialogues_file: str = None) -> bool:
 
     if task == '1':
         if not dialogues_file:
-            print(f'For Task 1 validation, dialogues path is required '
-                  f'(e.g. --dialogues test-banking/dialogues.jsonl)')
+            print(
+                'For Task 1 validation, dialogues path is required (e.g. --dialogues test-banking/dialogues.jsonl)'
+            )
             return False
         dialogues_path = Path(dialogues_file)
         if not dialogues_path.exists():

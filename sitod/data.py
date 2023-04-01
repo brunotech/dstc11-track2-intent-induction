@@ -128,10 +128,9 @@ def write_list_jsonl(data: List[Union[TurnPrediction, Intent, Dialogue]], output
 def _read_list_jsonl(initializer, path: Union[str, bytes, os.PathLike]):
     predictions = []
     with open(path, mode='r') as lines:
-        for line in lines:
-            if not line:
-                continue
-            predictions.append(initializer.from_dict(json.loads(line)))
+        predictions.extend(
+            initializer.from_dict(json.loads(line)) for line in lines if line
+        )
     return predictions
 
 

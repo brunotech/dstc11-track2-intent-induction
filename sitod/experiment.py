@@ -146,16 +146,15 @@ class IntentClusteringExperiment(Experiment):
                 )
             )
 
-            # write label assignments, evaluate
-            turn_predictions = []
-            for turn_id, reference_label in intents_by_turn_id.items():
-                turn_predictions.append(TurnPrediction(
+            turn_predictions = [
+                TurnPrediction(
                     predicted_label=label_assignments[turn_id],
                     reference_label=reference_label,
                     utterance=utterances_by_turn_id[turn_id],
-                    turn_id=turn_id
-                ))
-
+                    turn_id=turn_id,
+                )
+                for turn_id, reference_label in intents_by_turn_id.items()
+            ]
             # write predictions and metrics
             write_turn_predictions(turn_predictions, experiment_dir / OutputPaths.TURN_PREDICTIONS)
         else:
@@ -202,14 +201,14 @@ class OpenIntentInductionExperiment(Experiment):
         """
         super().__init__(run_id, metadata)
         self._dialog_reader = dialogue_reader
-        self._test_dialog_reader = test_dialogue_reader if test_dialogue_reader else IntentTestDataReader()
+        self._test_dialog_reader = test_dialogue_reader or IntentTestDataReader()
         self._dialogues_path = Path(dialogues_path)
         self._test_utterances_path = Path(test_utterances_path)
         self._open_intent_induction_model = open_intent_induction_model
         if not classifier_evaluator:
             classifier_evaluator = LogisticRegressionClassifierEvaluator()
         self._classifier_evaluator = classifier_evaluator
-        self._eval_seeds = eval_seeds if eval_seeds else [42]
+        self._eval_seeds = eval_seeds or [42]
         if not ignored_labels:
             ignored_labels = []
         self._ignored_labels = list(ignored_labels)

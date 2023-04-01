@@ -112,8 +112,10 @@ class ClusteringAccuracy(ClusteringMetric):
     def compute_metric(self, cluster_labels: List[str], reference_labels: List[str]) -> float:
         alignment = compute_optimal_alignment(cluster_labels, reference_labels)
         aligned_labels = align_labels(cluster_labels, alignment)
-        total_correct = sum(1 for aligned, reference in zip(aligned_labels,
-                                                            reference_labels) if aligned == reference)
+        total_correct = sum(
+            aligned == reference
+            for aligned, reference in zip(aligned_labels, reference_labels)
+        )
         accuracy = total_correct / len(reference_labels) if reference_labels else 0
         return 100 * accuracy
 
@@ -217,9 +219,8 @@ class ExampleCoverage(ClusteringMetric):
     def compute_metric(self, cluster_labels: List[str], reference_labels: List[str]) -> float:
         cluster_alignment = compute_many_to_one_alignment(cluster_labels, reference_labels)
         covered_intents = set(cluster_alignment.values())
-        covered_count = sum([1 for label in reference_labels if label in covered_intents])
-        coverage = (100 * covered_count / len(reference_labels)) if reference_labels else 0
-        return coverage
+        covered_count = sum(label in covered_intents for label in reference_labels)
+        return (100 * covered_count / len(reference_labels)) if reference_labels else 0
 
 
 def compute_many_to_one_alignment(cluster_labels: List[str], reference_labels: List[str]) -> Dict[str, str]:
@@ -281,12 +282,12 @@ def classification_metrics(predicted_labels: List[str], reference_labels: List[s
     labels += ['Micro Averaged']
     metrics = {}
     for label, label_precision, label_recall, label_f1, label_support in zip(labels, precision, recall, f1, support):
-        metrics.update({
+        metrics |= {
             f'{label} P': label_precision,
             f'{label} R': label_recall,
             f'{label} F1': label_f1,
             f'{label} Support': label_support,
-        })
+        }
     return metrics
 
 
@@ -311,12 +312,13 @@ def schema_metrics(schema: List[Intent]) -> Dict[str, Any]:
     for intent in schema:
         labels += len(intent.utterances) * [intent.intent_id]
     total_utterances = sum(len(intent.utterances) for intent in schema)
-    counts = {
+    return {
         '# Intents': len(schema),
         '# Utterances': total_utterances,
-        '# Utterances per Intent': total_utterances / len(schema) if schema else 0,
+        '# Utterances per Intent': total_utterances / len(schema)
+        if schema
+        else 0,
     }
-    return counts
 
 
 def clustering_info(
@@ -327,12 +329,11 @@ def clustering_info(
     ref_alignment = compute_many_to_one_alignment(reference_labels, cluster_labels)
     one_to_one_alignment = compute_optimal_alignment(cluster_labels, reference_labels)
 
-    metrics = {
+    return {
         '1:1 Alignment': one_to_one_alignment,
         'Cluster:Ref Many:1 Alignment': cluster_alignment,
         'Ref:Cluster Many:1 Alignment': ref_alignment,
     }
-    return metrics
 
 
 def compute_metrics_from_turn_predictions(
@@ -372,5 +373,5 @@ def compute_metrics_from_turn_predictions(
     metrics['Classification Many:1'] = classification_metrics(align_labels(cluster_labels, alignment,
                                                                            default_label='N/A'), reference_labels)
 
-    metrics.update(clustering_info(cluster_labels, reference_labels))
+    metrics |= clustering_info(cluster_labels, reference_labels)
     return metrics

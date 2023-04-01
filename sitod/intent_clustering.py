@@ -398,7 +398,7 @@ class CachingSentenceEmbeddingModelSentenceTransformersModel(SentenceEmbeddingMo
                 stored_embeddings = stored_data['embeddings']
                 if all(stored == utterance for stored, utterance in zip(stored_sentences, utterances)):
                     return stored_embeddings
-                logger.info(f'Stored utterances do not match input utterances for cache key')
+                logger.info('Stored utterances do not match input utterances for cache key')
 
         logger.info(f'Sentence encoder cache miss for {len(utterances)} utterances')
         embeddings = self._sentence_embedding_model.encode(utterances)

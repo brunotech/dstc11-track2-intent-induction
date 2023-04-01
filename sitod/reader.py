@@ -39,10 +39,9 @@ class DefaultDialogueReader(DialogueReader):
     def read_dialogues(self, path: Union[str, bytes, os.PathLike]) -> List[Dialogue]:
         dialogues = []
         with Path(path).open() as lines:
-            for line in lines:
-                if not line:
-                    continue
-                dialogues.append(Dialogue.from_dict(json.loads(line)))
+            dialogues.extend(
+                Dialogue.from_dict(json.loads(line)) for line in lines if line
+            )
         return dialogues
 
 

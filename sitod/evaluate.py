@@ -63,7 +63,7 @@ class LogisticRegressionClassifierEvaluator(ClassifierEvaluator):
         """
         super().__init__()
         self._sentence_encoder = sentence_encoder
-        self._classifier_settings = classifier_settings if classifier_settings else {'class_weight': 'balanced'}
+        self._classifier_settings = classifier_settings or {'class_weight': 'balanced'}
 
     @ignore_warnings(category=ConvergenceWarning)
     def predict_labels(
@@ -95,7 +95,7 @@ class LogisticRegressionClassifierEvaluator(ClassifierEvaluator):
         labels = le.fit_transform(labels)
         if len(le.classes_) <= 1:
             # special case for when only one label is available (and a classifier can't be trained)
-            label = 'None' if not le.classes_ else le.classes_[0]
+            label = le.classes_[0] if le.classes_ else 'None'
             return {turn_id: label for turn_id in target_turns}
 
         classifier.fit(X=train_embeddings, y=labels)
